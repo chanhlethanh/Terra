@@ -1,5 +1,6 @@
 package com.lab.entity;
 
+import java.io.Serializable;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -18,7 +19,7 @@ import lombok.Data;
 @Data
 @Entity
 @Table(name = "Products")
-public class Product {
+public class Product implements Serializable{
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	Integer id;

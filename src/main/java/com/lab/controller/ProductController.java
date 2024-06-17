@@ -1,45 +1,55 @@
 package com.lab.controller;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
-import com.lab.dao.ProductDao;
+import com.lab.dao.ProductService;
 import com.lab.entity.Product;
+import com.lab.services.SessionService;
 
 @Controller
+@RequestMapping("product")
+
 public class ProductController {
-	@Autowired
-	ProductDao productDao;
+    @Autowired
+    SessionService session;
 
-	@GetMapping("/product")
-	public String viewProduct(Model model) {
-		List<Product> listPrd = productDao.findAll();
-		model.addAttribute("products", listPrd);
-		return "/products";
-	}
+    @Autowired
+    ProductService service;
 
-	// @GetMapping("/single-product")
-	// public String viewSingleProduct() {
-	// return "/single-product";
-	// }
-	@GetMapping("/index")
-	public String index(Model model) {
-		List<Product> listPrd = productDao.findAll();
-		model.addAttribute("products", listPrd);
-		return "/index";
-	}
+    @GetMapping("views")
+    public String viewProducts(Model model, @RequestParam("field") Optional<String> field) {
+        Sort sort = Sort.by(Sort.Direction.DESC, field.orElse("price"));
+        List<Product> ls = service.findAll(sort);
+        model.addAttribute("LIST_PRODUCT", ls);
+        return "view-products";
+    }
 
-	// @RequestMapping("/single-product/{id}")
-	// public String detail(@PathVariable("id") Integer id, Model model) {
-	// Product product = productDao.findById(id).orElse(null);
-	// model.addAttribute("detailProduct", product);
-	// return "single-product";
-	// }
+    public boolean checkSercurity() {
+        String username = session.get("USERNAME");
+        System.err.println("checkSercurity: " + username);
+        if (username != null) {
+            return true;
+        }
+        return false;
+    }
 
+    @GetMapping("views/page")
+    public String paginate(Model model, @RequestParam("p") Optional<Integer> p) {
+        Pageable pageable = PageRequest.of(p.orElse(0), 10);
+        Page<Product> page = service.findAll(pageable);
+        model.addAttribute("LIST_PRODUCT", page);
+        return "view-products";
+    }
 }
